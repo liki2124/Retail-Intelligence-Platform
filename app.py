@@ -7,7 +7,9 @@ import streamlit as st
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-DB_PATH = PROJECT_ROOT / "data" / "processed" / "retail_analytics.db"
+DEPLOYMENT_DB = PROJECT_ROOT / "dashboard_data" / "retail_analytics.db"
+LOCAL_DB = PROJECT_ROOT / "data" / "processed" / "retail_analytics.db"
+DB_PATH = DEPLOYMENT_DB if DEPLOYMENT_DB.exists() else LOCAL_DB
 
 st.set_page_config(
     page_title="Retail Intelligence Platform",
