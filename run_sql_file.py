@@ -2,6 +2,8 @@
 import sys
 from pathlib import Path
 
+from sql_utils import split_sql_statements
+
 ROOT = Path(__file__).resolve().parent
 DB_PATH = ROOT / "data" / "sample" / "retail_sample.db"
 SQL_DIR = ROOT / "sql"
@@ -14,7 +16,6 @@ def main():
 
     filename = sys.argv[1]
 
-    # Only allow SQL files from the project's sql directory.
     if Path(filename).name != filename or not filename.endswith(".sql"):
         print("Error: provide a SQL filename such as 04_inventory_kpis.sql")
         sys.exit(1)
@@ -26,28 +27,30 @@ def main():
         sys.exit(1)
 
     if not DB_PATH.is_file():
-        print("Sample database not found. Run: python run_sql.py")
+        print(f"Sample database not found: {DB_PATH}")
         sys.exit(1)
 
     sql_text = sql_path.read_text(encoding="utf-8-sig")
 
-    # Split on semicolons and execute each query separately.
-    statements = [
-        statement.strip()
-        for statement in sql_text.split(";")
-        if statement.strip() and not statement.strip().startswith("--")
-    ]
+    try:
+        statements = split_sql_statements(sql_text)
+    except ValueError as error:
+        print(f"SQL parsing error: {error}")
+        sys.exit(1)
 
-    with sqlite3.connect(DB_PATH) as connection:
-        cursor = connection.cursor()
+    if not statements:
+        print("No SQL statements found.")
+        return
 
-        for number, statement in enumerate(statements, start=1):
-            print(f"\n{'=' * 60}")
-            print(f"Query {number}")
-            print("=" * 60)
+    try:
+        with sqlite3.connect(DB_PATH) as connection:
+            for number, statement in enumerate(statements, start=1):
+                print(f"\n{'=' * 60}")
+                print(f"Query {number}")
+                print("=" * 60)
 
-            try:
-                cursor.execute(statement)
+                cursor = connection.execute(statement)
+
                 if cursor.description:
                     columns = [item[0] for item in cursor.description]
                     rows = cursor.fetchall()
@@ -61,9 +64,9 @@ def main():
                 else:
                     print(f"Rows affected: {cursor.rowcount}")
 
-            except sqlite3.Error as error:
-                print(f"SQL error: {error}")
-                sys.exit(1)
+    except sqlite3.Error as error:
+        print(f"SQL execution error: {error}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
