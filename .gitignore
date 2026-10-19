@@ -1,20 +1,40 @@
-﻿.env
+﻿
+# Environment variables and secrets
+.env
 .env.*
 !.env.example
-__pycache__/
-.ipynb_checkpoints/
+
+# Python environments and cache
 .venv/
 venv/
-*.pyc
-# Python-generated files
+__pycache__/
+**/__pycache__/
 *.py[cod]
 .pytest_cache/
-# Generated sample database
-data/sample/*.db
+.ipynb_checkpoints/
 
-# Local source datasets (keep large/raw data out of Git)
+# Local backup files
+*.bak
+*.backup
+*.backup-*
+*.backup_*
+*.before_*
+*.conflict-backup*
+*.pipeline-backup*
+
+# Local inspection notes and temporary scripts
+file_inventory.txt
+inventory_dashboard_section.txt
+inspect_*.py
+profile_*.py
+patch_*.py
+
+# Local source datasets
 /data/raw/
 
 # Generated pipeline outputs
 /data/processed/
 /reports/data_quality_report.json
+
+# Generated sample databases
+/data/sample/*.db
